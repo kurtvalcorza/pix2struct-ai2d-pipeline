@@ -2,6 +2,7 @@
 license: apache-2.0
 model_card_spec: "1.1"
 pipeline_tag: visual-question-answering
+task: "Others - Diagram Question Answering"
 base_model: google/pix2struct-ai2d-base
 date_published: "2023-03-14"
 date_published_source: "Hugging Face Hub repository creation date of the exact hosted checkpoint (`createdAt` 2023-03-14T10:02:51Z, https://huggingface.co/api/models/google/pix2struct-ai2d-base — the Transformers-format conversion); the Pix2Struct paper and T5X checkpoints are from 2022-10 (arXiv:2210.03347), and the pinned revision is the Hub's `main` as of 2026-09-14"
