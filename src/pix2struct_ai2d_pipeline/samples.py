@@ -62,9 +62,9 @@ CORPUS_COLUMNS = ("question", "options", "answer", "image")
 CORPUS_FILE: dict[str, Any] = {
     "path": "data/test-00000-of-00002.parquet",
     "bytes": 62_292_686,
-    "sha256": None,
-    "rows": None,
-    "images": None,
+    "sha256": "450ecfa95b0c475ba214cd9a33b7ec5d1d782e7321a54fc652453d8776743702",
+    "rows": 1544,
+    "images": 391,
 }
 DEFAULT_CACHE_DIR = Path("weights") / "ai2d"
 SAMPLE_SEED = 42
