@@ -15,3 +15,6 @@ weights/**/*.pt
 weights/**/*.pth
 weights/**/*.onnx
 weights/**/.cache/
+
+# The AI2D sample shard and its extracted diagrams are fetched at run time
+weights/ai2d/
