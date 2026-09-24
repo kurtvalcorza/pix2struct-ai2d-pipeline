@@ -227,6 +227,30 @@ def test_read_corpus_and_build_sample_split_by_diagram(tmp_path, monkeypatch):
         build_sample_dataset(rows, sizes=too_many, image_dir=tmp_path / "i2")
 
 
+def test_build_sample_leaves_out_questions_validate_dataset_rejects(tmp_path, monkeypatch):
+    monkeypatch.setitem(samples_module.CORPUS_FILE, "rows", None)
+    monkeypatch.setitem(samples_module.CORPUS_FILE, "images", None)
+    rows = read_corpus(_shard(tmp_path))
+    rows[0] = {**rows[0], "options": ["A", "B", "C", "x" * (samples_module.MAX_OPTION_CHARS + 1)]}
+    rows[3] = {**rows[3], "options": ["leaf", "Leaf", "root", "flower"]}
+    sizes = {"train": 60, "validation": 15, "test": 30}
+    splits = build_sample_dataset(rows, seed=3, sizes=sizes, image_dir=tmp_path / "images")
+    kept = {r["question"] for part in splits.values() for r in part}
+    assert rows[0]["question"] not in kept and rows[3]["question"] not in kept
+    for part in splits.values():
+        validate_dataset(part)
+
+
+def test_pinned_sample_validates_when_the_shard_is_cached(tmp_path):
+    local = samples_module.DEFAULT_CACHE_DIR / samples_module.CORPUS_FILE["path"]
+    if not corpus_pinned() or not local.is_file():
+        pytest.skip("pinned AI2D shard not cached locally")
+    splits = build_sample_dataset(read_corpus(fetch_corpus()), image_dir=tmp_path / "images")
+    for name, part in splits.items():
+        assert len(part) >= samples_module.SAMPLE_QUESTIONS[name]
+        validate_dataset(part)
+
+
 # ---- adaptation surface without a model -------------------------------------------------------------------
 
 

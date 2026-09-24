@@ -184,7 +184,9 @@ def build_sample_dataset(
     image_dir: str | Path | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Group the rows by diagram (content digest), shuffle the diagrams with `seed`, and allocate whole
-    diagrams to test, validation and train until each split's question target is reached. The diagrams of the
+    diagrams to test, validation and train until each split's question target is reached. Questions that
+    `validate_dataset` would reject (an option over `MAX_OPTION_CHARS`, options that coincide after
+    normalisation, …) are left out before they are counted, so every split validates. The diagrams of the
     chosen questions are written to `image_dir` under their digest."""
     sizes = dict(sizes or SAMPLE_QUESTIONS)
     out_dir = Path(image_dir) if image_dir is not None else DEFAULT_CACHE_DIR / "images"
@@ -207,17 +209,20 @@ def build_sample_dataset(
         if not path.is_file() or _sha256_bytes(path.read_bytes())[:16] != image_id:
             path.write_bytes(data)
         for row in groups[image_id]:
-            out[target].append(
-                {
-                    "id": f"{target}-{len(out[target]):04d}",
-                    "image_id": image_id,
-                    "image": str(path),
-                    "question": str(row["question"]),
-                    "options": [str(o) for o in row["options"]],
-                    "answer": int(row["answer"]),
-                    "category": option_category(row["options"]),
-                }
-            )
+            record = {
+                "id": f"{target}-{len(out[target]):04d}",
+                "image_id": image_id,
+                "image": str(path),
+                "question": str(row["question"]),
+                "options": [str(o) for o in row["options"]],
+                "answer": int(row["answer"]),
+                "category": option_category(row["options"]),
+            }
+            try:
+                _check_record(record, 0, base_dir=None)
+            except ValueError:
+                continue  # outside the ceilings `validate_dataset` and `answer` apply: not part of the sample
+            out[target].append(record)
     short = {name: (len(out[name]), sizes[name]) for name in out if len(out[name]) < sizes[name]}
     if short:
         raise ValueError(f"the shard's diagrams do not fill the split targets: {short}")
