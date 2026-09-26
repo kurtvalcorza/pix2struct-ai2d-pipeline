@@ -49,7 +49,7 @@ weights/pix2struct-ai2d-base/
 
 ## Release status
 
-**Candidate.** The `E2E` revision of the notebook has no recorded execution, and its sample reader refuses to run until the AI2D shard's SHA-256 pin is recorded (`tools/pin_corpus.py`, which needs Hub access). Static/unit checks — including the standalone generator parity checks (`tools/build_notebook.py --check`, `tests/test_notebook_parity.py`) and the adaptation suites on a small random Pix2Struct built offline — do not constitute clean-runtime notebook evidence, and the fine-tuning recipe has not yet been run on the real checkpoint. The earlier `TASK-INFERENCE` notebook's runs in `docs/release-verification.md` do not carry over. Record a clean supported-runtime run of the exact notebook blob before calling it release-grade.
+**Candidate.** The `E2E` revision of the notebook has no recorded execution. The AI2D shard's SHA-256 pin is recorded (`tools/pin_corpus.py`), and AI2D's licence terms were reviewed and cleared for this use by the maintainer (Kurt Valcorza, 2026-09-26); the Hub mirror itself still declares no licence. Static/unit checks — including the standalone generator parity checks (`tools/build_notebook.py --check`, `tests/test_notebook_parity.py`) and the adaptation suites on a small random Pix2Struct built offline — do not constitute clean-runtime notebook evidence, and the fine-tuning recipe has not yet been run on the real checkpoint. The earlier `TASK-INFERENCE` notebook's runs in `docs/release-verification.md` do not carry over. Record a clean supported-runtime run of the exact notebook blob before calling it release-grade.
 
 ## Documentation
 

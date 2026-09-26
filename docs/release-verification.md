@@ -150,16 +150,15 @@ they are history and are **not** evidence for the `E2E` blob.
 
 ## Current status
 
-**Candidate.** No execution of the `E2E` notebook is recorded, and none can be until the AI2D shard's SHA-256 pin is
-recorded: `fetch_corpus` refuses to read an unpinned shard, and this repository's build environment had no Hub
-access to compute the pin (`tools/pin_corpus.py` records it and prints the realised split counts; regenerate the
-notebook afterwards). What exists: static validation (`tools/validate_release_assets.py`), the generator parity checks
+**Candidate.** No execution of the `E2E` notebook is recorded. The AI2D shard's SHA-256 pin is recorded in
+`samples.py` (`tools/pin_corpus.py`; 1,544 rows), and AI2D's licence terms were reviewed and cleared for this use by the maintainer (Kurt Valcorza, 2026-09-26); the Hub mirror itself still declares no licence. What exists: static validation (`tools/validate_release_assets.py`), the generator parity checks
 (`--check` OK), the offline suites and the adaptation suite on a small random Pix2Struct. The Kaggle CPU and local runs
 above were of the earlier `TASK-INFERENCE` notebook, whose inference path (staging, verification, the drawn diagram)
 the `E2E` notebook still carries as Section 5, but they do not carry over to the new blob.
 
-Facts a reviewer should weigh before promotion: the Hub mirror declares no licence for AI2D, so AI2D's own terms must
-be checked and recorded before the notebook downloads it by default; the checkpoint was fine-tuned on AI2D's training
+Facts a reviewer should weigh before promotion: the Hub mirror declares no licence for AI2D; its terms were reviewed
+and cleared for this use by the maintainer on 2026-09-26, and the notebook still tells users to check them before
+redistributing the diagrams or an adapter trained on them; the checkpoint was fine-tuned on AI2D's training
 questions, so this is continued adaptation inside the domain and a small or zero gain is the expected outcome, not a
 defect; the fine-tuning recipe (`LEARNING_RATE = 1e-5`, three epochs, two blocks, batch 4) has not been run on this
 checkpoint, so the notebook records `adapted_beats_frozen` instead of asserting a gain — restore an assertion once a
