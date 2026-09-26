@@ -49,7 +49,7 @@ weights/pix2struct-ai2d-base/
 
 ## Release status
 
-**Candidate.** The `E2E` revision of the notebook has no recorded execution. The AI2D shard's SHA-256 pin is recorded (`tools/pin_corpus.py`), and AI2D's licence terms were reviewed and cleared for this use by the maintainer (Kurt Valcorza, 2026-09-26); the Hub mirror itself still declares no licence. Static/unit checks — including the standalone generator parity checks (`tools/build_notebook.py --check`, `tests/test_notebook_parity.py`) and the adaptation suites on a small random Pix2Struct built offline — do not constitute clean-runtime notebook evidence, and the fine-tuning recipe has not yet been run on the real checkpoint. The earlier `TASK-INFERENCE` notebook's runs in `docs/release-verification.md` do not carry over. Record a clean supported-runtime run of the exact notebook blob before calling it release-grade.
+**Release-grade** for the exact `E2E` carrier recorded in `docs/release-verification.md`: commit `75255e0` / notebook blob `02cd3fb8fda4` executed top-to-bottom on Kaggle Tesla T4 on 2026-09-26 UTC (11/11 code cells, 1173.5 s). On the default seeded split of AI2D test questions (161 held out), accuracy was 0.354 frozen and 0.366 adapted against chance 0.25 and the longest-option baseline 0.248; reload parity was 8/8. One seeded split on one runtime with no dispersion estimate, not an AI2D benchmark; AI2D's licence terms were reviewed and cleared for this use by the maintainer (Kurt Valcorza, 2026-09-26); the Hub mirror itself still declares no licence. Static/unit checks remain source checks only; any change to the notebook blob returns it to Candidate until a new exact-blob run is recorded.
 
 ## Documentation
 

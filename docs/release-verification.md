@@ -1,7 +1,8 @@
 # Release verification
 
-`tutorials/pix2struct_ai2d_colab.ipynb` (`E2E`, **standalone** carrier) is a **release candidate** until the
-exact notebook revision has executed top-to-bottom in a clean supported runtime. Unit tests, JSON validation,
+`tutorials/pix2struct_ai2d_colab.ipynb` (`E2E`, **standalone** carrier) holds **Release-grade** for the exact
+commit and notebook blob recorded under "Recorded executions" below, and returns to **Candidate** whenever the blob
+changes, until that exact blob has executed top-to-bottom in a clean supported runtime. Unit tests, JSON validation,
 code-cell compilation, the generator parity checks and `tools/validate_release_assets.py` are necessary checks but
 are **not** runtime evidence under DIMER Notebook Specification 2.0 (REL8). This file is the durable release-gate
 record for the notebook.
@@ -133,8 +134,15 @@ they are measurements for the stated runtime, not general estimates.
 
 ### `E2E` notebook
 
-No execution of the `E2E` notebook is recorded yet. The rows below are the earlier inference-only notebook's runs;
-they are history and are **not** evidence for the `E2E` blob.
+| Date (UTC) | Commit / notebook blob | Executor | Path exercised | Wall | Outcome |
+|---|---|---|---|---|---|
+| 2026-09-26 (03:30–03:50) | `75255e0` / `02cd3fb8fda4` (`NOTEBOOK_SOURCE.repository_revision` = `metadata.dimer.generated_from.revision` = `a633e1a…`, the source revision the notebook was generated at; `a633e1a..75255e0` changes only the notebook; embedded `module_sha256` `2c028c60827d…`) | Kaggle Tesla T4 (`kurtvalcorza/dimer-nb2-pix2struct-ai2d` v3), serial suite: committed blob fetched at the 40-char SHA and Git-blob verified, executed verbatim in a fresh interpreter with a `google.colab` shim and no repository checkout; HF cache clean at start, no pre-staged snapshot or corpus files; image `gcr.io/kaggle-gpu-images/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461` (image torch 2.10.0+cu128, transformers 5.0.0, numpy 2.0.2, pillow 11.3.0), Python 3.12.13, Tesla T4 15360 MiB, driver 580.159.04; after the inline pins: torch 2.14.0+cu130 (CUDA 13.0), transformers 4.57.6, device `cuda:0`, float32, source `local-snapshot` | Default path, form parameters at their defaults (`USE_BYOD = False`, `SPLIT_SEED = 42`, `ANSWER_MAX_TOKENS = 16`, `EPOCHS = 3`, `LEARNING_RATE = 1e-5`, `BATCH_SIZE = 4`, `TRAINABLE_DECODER_LAYERS = 2`), 11/11 code cells ok after the install restart. Staging: all 8 manifest entries fetched from `google/pix2struct-ai2d-base` @ `0d6b2606…` (568,740,298 B), `verify_snapshot` 8 files, `model.safetensors` sha256 `652c92f8b995…`; no font fetch in the log. Section 4: `data/test-00000-of-00002.parquet` @ `c83a9b96…` accepted at the pinned 62,292,686 B / sha256 `450ecfa95b0c…` (1,544 rows, 391 diagrams); split 360 / 82 / 161 questions on 87 / 24 / 41 whole diagrams (train 300 text-option + 60 letter-label; test 126 + 35), dataset digests `f1fea8d53bb9…` / `57f7558734ce…` / `9968c8d6d3a3…`; the four refusal probes (duplicate id, missing image, answer out of range, too small) each rejected. Section 5: input manifest `accepted` with the single-option rejection finding; ten answers `root`, `root`, `root`, `stem`, `sun`, `soil`, `root`, `sun`, `leaf`, `root`, every sanity check `True`, `sample-sanity` `accuracy` 0.4 (4/10) against chance 0.25, `unmatched_rate` 0.0 (finding: labels 4 and 6 answered `stem` / `soil` here where the 2026-09-14 CPU runs answered `root` / `water`; the score is unchanged). Section 6 (test n = 161): chance 0.25, position-prior 0.193, longest-option 0.248, frozen accuracy 0.354 (unmatched 0.075; letter-label 0.343 of 35, text-option 0.357 of 126), `frozen_beats_chance` `True`. Section 7: 18,879,744 trainable of 282,285,696 parameters, 360 training questions, seed 0; validation accuracy epoch 0 (frozen) 0.366, epoch 1 0.366 (loss 1.7402), epoch 2 0.378 (loss 1.5653), epoch 3 0.354 (loss 1.3107); best epoch 2 by validation accuracy; 688.6 s. Section 8: validation (n = 82) adapted 0.378, unmatched 0.049; test adapted accuracy 0.366 (unmatched 0.068; letter-label 0.314, text-option 0.381), delta vs frozen +0.012 accuracy (57 → 59 of 161), −0.006 unmatched rate, `adapted_beats_frozen` `True` — recorded, not asserted; one seeded split, no dispersion estimate. Section 9: drawn-diagram accuracy frozen 0.4 / adapted 0.4 (same ten answers); adapter 29 tensors, 75,522,608 B, sha256 `e6b175146c25…`; `from_artifact` reload parity 8/8 identical. Preserved output sha256: `pix2struct_ai2d_result.json` `386028cea215…`, `pix2struct_ai2d_evaluation_report.json` `ae50c575687f…`, `pix2struct_ai2d_answers.csv` `16b3d1e7e2fb…`, `pix2struct_ai2d_input_manifest.json` `7e09fb3a3507…`, `pix2struct_ai2d_train.jsonl` `07825a3a0e8d…`, `pix2struct_ai2d_adapter/manifest.json` `920a3ea05129…` | 1173.5 s (pass 1 178.1 s stopped at the install cell with the pip dependency-resolver `CellExecutionError` and the notebook's stale-module guard — `cuda-bindings` 12.9.4 → 13.4.3, `numpy` 2.0.2 → 2.5.3 — kernel restarted after the install cell as step 4 expects; pass 2 995.3 s) | **PASSED** — promotion evidence for this blob |
+| 2026-09-26 | `4692451` / `da950ba98d41` | Kaggle Tesla T4 (`kurtvalcorza/dimer-nb2-pix2struct-ai2d` v2), same serial suite | Default path | 224.6 s | **FAILED** — 4/11 code cells ok after the install restart; model-staging cell 11 raised `TypeError: _hub_download() takes 1 positional argument but 2 were given` because the standalone notebook's embedded `samples._hub_download` shadowed `pipeline._hub_download`; fixed by the rename in `a633e1a` and the regenerated notebook in `75255e0`. Superseded; not evidence for the current blob |
+
+### Superseded `TASK-INFERENCE` notebook
+
+The rows below are the earlier inference-only notebook's runs; they are history and are **not** evidence for the
+`E2E` blob.
 
 ### Superseded `TASK-INFERENCE` notebook — local pre-flight (not a supported runtime)
 
@@ -150,21 +158,28 @@ they are history and are **not** evidence for the `E2E` blob.
 
 ## Current status
 
-**Candidate.** No execution of the `E2E` notebook is recorded. The AI2D shard's SHA-256 pin is recorded in
-`samples.py` (`tools/pin_corpus.py`; 1,544 rows), and AI2D's licence terms were reviewed and cleared for this use by the maintainer (Kurt Valcorza, 2026-09-26); the Hub mirror itself still declares no licence. What exists: static validation (`tools/validate_release_assets.py`), the generator parity checks
-(`--check` OK), the offline suites and the adaptation suite on a small random Pix2Struct. The Kaggle CPU and local runs
-above were of the earlier `TASK-INFERENCE` notebook, whose inference path (staging, verification, the drawn diagram)
-the `E2E` notebook still carries as Section 5, but they do not carry over to the new blob.
+**Release-grade** for commit `75255e0` / notebook blob `02cd3fb8fda4`, on the passing Kaggle Tesla T4 run recorded
+above (2026-09-26 UTC, 11/11 code cells, 1173.5 s). The run exercised every step of the procedure: a clean runtime
+with no checkout and an empty cache, the default form parameters, the pinned shard accepted at its recorded SHA-256,
+all nine sections, the six exports and the reload-parity assertion. The measured values are one seeded split of 161
+held-out AI2D test questions on one runtime, not an AI2D benchmark: frozen accuracy 0.354 and adapted 0.366 against
+chance 0.25 and the best non-neural baseline 0.248, so the adaptation gain (+0.012, two questions) is within what one
+split without a dispersion estimate can resolve. The first T4 attempt on `4692451` failed on the embedded-module
+`_hub_download` name collision, fixed in `a633e1a` / `75255e0`. Any change to the notebook blob returns the carrier to
+Candidate until a new exact-blob run is recorded here.
 
-Facts a reviewer should weigh before promotion: the Hub mirror declares no licence for AI2D; its terms were reviewed
-and cleared for this use by the maintainer on 2026-09-26, and the notebook still tells users to check them before
-redistributing the diagrams or an adapter trained on them; the checkpoint was fine-tuned on AI2D's training
-questions, so this is continued adaptation inside the domain and a small or zero gain is the expected outcome, not a
-defect; the fine-tuning recipe (`LEARNING_RATE = 1e-5`, three epochs, two blocks, batch 4) has not been run on this
-checkpoint, so the notebook records `adapted_beats_frozen` instead of asserting a gain — restore an assertion once a
-measured recipe is recorded here; accuracy counts an unmatched answer as wrong, so teaching the decoder to copy option
-text exactly can raise accuracy without better reading of the diagram (the unmatched rate is reported beside it); the
-prompt header uses Pillow's bundled font rather than the Arial the checkpoint was trained with, which may cost the
-frozen model accuracy that fine-tuning then recovers; each question costs its own encoder pass at up to 2,048
-patches, in training as well as evaluation, so a GPU runtime is recommended; and the ~80-question validation and
-~160-question test splits carry no dispersion estimate.
+The AI2D shard's SHA-256 pin is recorded in `samples.py` (`tools/pin_corpus.py`; 1,544 rows), and AI2D's licence
+terms were reviewed and cleared for this use by the maintainer (Kurt Valcorza, 2026-09-26).
+
+Facts a reviewer should still weigh: the Hub mirror declares no licence for AI2D; its terms were reviewed and cleared
+for this use by the maintainer on 2026-09-26, and the notebook still tells users to check them before redistributing
+the diagrams or an adapter trained on them; the checkpoint was fine-tuned on AI2D's training questions, so this is continued adaptation inside the
+domain and a small or zero gain is the expected outcome, not a defect; the notebook still records
+`adapted_beats_frozen` instead of asserting a gain — the recipe (`LEARNING_RATE = 1e-5`, three epochs, two blocks,
+batch 4) has now been measured once above, and whether that single measurement is enough to restore an assertion is a
+maintainer decision that would change the notebook blob; accuracy counts an unmatched answer as wrong, so teaching the
+decoder to copy option text exactly can raise accuracy without better reading of the diagram (the unmatched rate fell
+from 0.075 to 0.068 beside the accuracy gain, and letter-label accuracy fell from 0.343 to 0.314); the prompt header
+uses Pillow's bundled font rather than the Arial the checkpoint was trained with; each question costs its own encoder
+pass at up to 2,048 patches, in training as well as evaluation (adaptation took 688.6 s on the T4); and the
+82-question validation and 161-question test splits carry no dispersion estimate.
