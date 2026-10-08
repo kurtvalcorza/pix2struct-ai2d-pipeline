@@ -1,0 +1,93 @@
+[colab] Parsing notebook '/home/kurt/colab-runs/pix2struct-ai2d-pipeline-39d8e03-30f023/pix2struct_ai2d_colab_39d8e03_colab-cli-t4.ipynb'...
+[colab] Executing cell 1/13 - Infrastructure: build (or reuse) the isolated environment and route later cells to it...
+{'isolated_environment': '/content/dimer_isolated_env_d91c3f697a61', 'reused': False, 'isolated_python': '3.12.12', 'kernel_python': '3.13.15', 'locked_packages': 48, 'setup_seconds': 57}
+{'routed_to': '/content/dimer_isolated_env_d91c3f697a61/bin/python', 'worker_pid': 4619, 'worker_reused': False}
+[colab] Executing cell 2/13 - Infrastructure: record the runtime...
+{'notebook_source': {'repository': 'pix2struct-ai2d-pipeline', 'repository_revision': 'a89788a5f7f7c2d7f22bdeb35dd0ddd87b9d9fc7', 'embedded_module': 'src/pix2struct_ai2d_pipeline/pipeline.py', 'embedded_modules': ['src/pix2struct_ai2d_pipeline/metrics.py', 'src/pix2struct_ai2d_pipeline/pipeline.py', 'src/pix2struct_ai2d_pipeline/samples.py'], 'module_sha256': '2c028c60827d6ce0dec606df71c3f8f36ead3a21155f1245a8a692cf2bf4249a', 'generator': 'build_notebook.py/2.2', 'notebook_spec': '2.2'}, 'python': '3.12.12', 'executable': '/content/dimer_isolated_env_d91c3f697a61/bin/python', 'torch': '2.14.0+cu130', 'transformers': '4.57.6', 'cuda': True}
+[colab] Executing cell 3/13 - Infrastructure: carried module 1/3: src/pix2struct_ai2d_pipeline/metrics.py (verbatim; see the note above)...
+[colab] Executing cell 4/13 - Infrastructure: carried module 2/3: src/pix2struct_ai2d_pipeline/pipeline.py (verbatim; see the note above)...
+[colab] Executing cell 5/13 - Infrastructure: carried module 3/3: src/pix2struct_ai2d_pipeline/samples.py (verbatim; see the note above)...
+[colab] Executing cell 6/13 - Infrastructure: stage and digest-verify the pinned snapshot, then load the model...
+{'model_id': 'google/pix2struct-ai2d-base', 'revision': '0d6b2606efe05c77c1d0670647740802a9e68eef', 'license': 'apache-2.0', 'files': 8, 'total_bytes': 568740298}
+{'weights_dir': '/content/weights/pix2struct-ai2d-base', 'fetched': ['README.md', 'config.json', 'model.safetensors', 'preprocessor_config.json', 'special_tokens_map.json', 'spiece.model', 'tokenizer.json', 'tokenizer_config.json']}
+{'verified_files': 8, 'revision': '0d6b2606efe05c77c1d0670647740802a9e68eef'}
+{'device': 'cuda:0', 'source': 'local-snapshot'}
+[colab] Executing cell 7/13 - pix2struct_ai2d-16...
+{'data_source': 'AI2D (test questions) — AI2D test split (3,088 questions) as mirrored on the Hugging Face Hub, dataset revision c83a9b96', 'raw_rows': {'questions': 1544, 'diagrams': 391}, 'splits': {'train': 360, 'validation': 82, 'test': 161}, 'shard_sha256': '450ecfa95b0c475b...'}
+{'train': {'questions': 360, 'diagrams': 87, 'categories': {'text-option': 300, 'letter-label': 60}, 'answer_positions': {0: 93, 1: 79, 2: 91, 3: 97}, 'options_per_question': {'min': 4, 'max': 4}, 'digest': 'f1fea8d53bb9c912...'}}
+{'validation': {'questions': 82, 'diagrams': 24, 'categories': {'letter-label': 14, 'text-option': 68}, 'answer_positions': {0: 16, 1: 23, 2: 30, 3: 13}, 'options_per_question': {'min': 4, 'max': 4}, 'digest': '57f7558734cea74d...'}}
+{'test': {'questions': 161, 'diagrams': 41, 'categories': {'text-option': 126, 'letter-label': 35}, 'answer_positions': {0: 47, 1: 43, 2: 40, 3: 31}, 'options_per_question': {'min': 4, 'max': 4}, 'digest': '9968c8d6d3a37482...'}}
+{'example': {'id': 'train-0000', 'image': '2ee6905ff7b744e5.png', 'size': [728, 546], 'category': 'text-option', 'question': 'What does stage B depict?', 'options': ['growing tadpole', 'egg', 'tadpole larva', 'adult'], 'answer': 2}}
+{'probe': 'duplicate id', 'rejected': "duplicate id 'same'"}
+{'probe': 'missing image file', 'rejected': 'records[0]: image file not found: work/does-not-exist.png'}
+{'probe': 'answer out of range', 'rejected': 'records[0]: answer must be the zero-based index of the correct option'}
+{'probe': 'too small', 'rejected': '3 records; 8..5000 are required'}
+[colab] Executing cell 8/13 - pix2struct_ai2d-19...
+{'MIN_IMAGE_SIDE': 16, 'MAX_IMAGE_SIDE': 4096, 'MAX_PATCHES': 2048, 'MAX_QUESTION_CHARS': 256, 'MIN_OPTIONS': 2, 'MAX_OPTIONS': 6, 'MAX_OPTION_CHARS': 64, 'MAX_NEW_TOKENS': 64, 'DEFAULT_MAX_NEW_TOKENS': 16, 'DECODING': 'greedy', 'MIN_RECORDS': 8, 'MAX_RECORDS': 5000}
+{'diagram': 'synthetic_plant_diagram_640x640.png', 'rgb_sha256': 'c990244ae55de0e4...', 'questions': 10, 'manifest_verdict': 'accepted', 'findings': 1}
+Q: What does the label 1 represent?  options=['flower', 'leaf', 'stem', 'root']
+   A: 'root' -> root  (2 tokens)
+Q: What does the label 2 represent?  options=['flower', 'leaf', 'stem', 'root']
+   A: 'root' -> root  (2 tokens)
+Q: What does the label 3 represent?  options=['root', 'stem', 'leaf', 'flower']
+   A: 'root' -> root  (2 tokens)
+Q: What does the label 4 represent?  options=['stem', 'flower', 'root', 'leaf']
+   A: 'stem' -> stem  (2 tokens)
+Q: What does the label 5 represent?  options=['moon', 'sun', 'cloud', 'rain']
+   A: 'sun' -> sun  (2 tokens)
+Q: What does the label 6 represent?  options=['water', 'air', 'soil', 'rock']
+   A: 'soil' -> soil  (2 tokens)
+Q: Which part of the plant is below the soil?  options=['flower', 'leaf', 'stem', 'root']
+   A: 'root' -> root  (2 tokens)
+Q: What provides light to the plant?  options=['soil', 'sun', 'root', 'leaf']
+   A: 'sun' -> sun  (2 tokens)
+Q: Which part connects the roots to the flower?  options=['leaf', 'soil', 'stem', 'sun']
+   A: 'leaf' -> leaf  (2 tokens)
+Q: Which part is at the top of the plant?  options=['root', 'stem', 'flower', 'soil']
+   A: 'root' -> root  (2 tokens)
+{'checks': {'one_result_per_question': True, 'answers_are_text': True, 'budget_respected': True, 'setting_echoed': True}, 'frozen_diagram_verdict': 'sample-sanity', 'accuracy': 0.4, 'chance': 0.25, 'unmatched': 0}
+[colab] Executing cell 9/13 - pix2struct_ai2d-21...
+{'position_prior_baseline': 0.193, 'note': 'always option 4 (most frequent correct position in training)', 'n': 161}
+{'longest_option_baseline': 0.248, 'chance': 0.25}
+{'frozen_model_test': {'accuracy': 0.354, 'unmatched_rate': 0.075, 'chance': 0.25}, 'n': 161, 'verdict': 'measured', 'adapted': False, 'seconds': 85.2}
+{'by_category': {'position_prior': {'letter-label': {'n': 35, 'accuracy': 0.08571428571428572}, 'text-option': {'n': 126, 'accuracy': 0.2222222222222222}}, 'frozen': {'letter-label': {'n': 35, 'accuracy': 0.34285714285714286}, 'text-option': {'n': 126, 'accuracy': 0.35714285714285715}}}}
+{'definitions': {'accuracy': 'fraction of questions whose matched option is the correct one; unmatched answers count as wrong', 'unmatched_rate': 'fraction of questions whose generated text matches none of the options', 'chance': 'mean of 1 / n_options over the scored questions (uniform guessing)', 'by_category': 'accuracy per record category (`letter-label` / `text-option` in the sample)'}}
+{'category': 'text-option', 'question': 'What is B in the diagram?', 'options': ['skin', 'bone', 'horny hoof', 'hair'], 'correct': 'horny hoof', 'frozen': 'horny hoof'}
+{'category': 'text-option', 'question': 'What is E in the diagram?', 'options': ['skin', 'bone', 'horny hoof', 'hair'], 'correct': 'bone', 'frozen': 'skin'}
+{'category': 'text-option', 'question': 'The reactants and products for photosynthesis are shown in the above diagram. What ingredient is shown at G?', 'options': ['Sunlight', 'Oxygen', 'Carbon dioxide', 'Water'], 'correct': 'Water', 'frozen': 'Oxygen'}
+{'frozen_beats_chance': True}
+[colab] Executing cell 10/13 - pix2struct_ai2d-24...
+{'epoch': 0, 'train_loss': None, 'val_accuracy': 0.366, 'val_unmatched_rate': 0.098, 'note': 'frozen model'}
+{'epoch': 1, 'train_loss': 1.7402, 'val_accuracy': 0.366, 'val_unmatched_rate': 0.073}
+{'epoch': 2, 'train_loss': 1.5653, 'val_accuracy': 0.378, 'val_unmatched_rate': 0.049}
+{'epoch': 3, 'train_loss': 1.3107, 'val_accuracy': 0.354, 'val_unmatched_rate': 0.061}
+{'trainable_parameters': 18879744, 'total_parameters': 282285696, 'training_questions': 360, 'best_epoch': 2, 'selection': 'highest validation accuracy', 'seconds': 655.2}
+[colab] Executing cell 11/13 - pix2struct_ai2d-27...
+{'scored_weights': {'frozen_test_adapted': False, 'adapted_test_adapted': True}, 'best_epoch': 2}
+{'accuracy': {'chance': 0.25, 'position_prior': 0.193, 'longest_option': 0.248, 'frozen': 0.354, 'adapted': 0.366}}
+{'unmatched_rate': {'frozen': 0.075, 'adapted': 0.068}}
+{'delta_vs_frozen': {'accuracy': 0.012, 'unmatched_rate': -0.006}}
+{'by_category': {'letter-label': {'n': 35, 'position_prior': 0.086, 'frozen': 0.343, 'adapted': 0.314}, 'text-option': {'n': 126, 'position_prior': 0.222, 'frozen': 0.357, 'adapted': 0.381}}}
+{'question': 'What is B in the diagram?', 'correct': 'horny hoof', 'frozen': 'horny hoof', 'adapted': 'horny hoof'}
+{'question': 'What is E in the diagram?', 'correct': 'bone', 'frozen': 'skin', 'adapted': 'skin'}
+{'question': 'The reactants and products for photosynthesis are shown in the above diagram. What ingredient is shown at G?', 'correct': 'Water', 'frozen': 'Oxygen', 'adapted': 'Oxygen'}
+{'adapted_beats_frozen': True}
+{'report': 'outputs/pix2struct_ai2d_evaluation_report.json'}
+[colab] Executing cell 12/13 - pix2struct_ai2d-30...
+{'question': 'What does the label 1 represent?', 'frozen': 'root', 'adapted': 'root'}
+{'question': 'What does the label 2 represent?', 'frozen': 'root', 'adapted': 'root'}
+{'question': 'What does the label 3 represent?', 'frozen': 'root', 'adapted': 'root'}
+{'question': 'What does the label 4 represent?', 'frozen': 'stem', 'adapted': 'stem'}
+{'question': 'What does the label 5 represent?', 'frozen': 'sun', 'adapted': 'sun'}
+{'question': 'What does the label 6 represent?', 'frozen': 'soil', 'adapted': 'soil'}
+{'question': 'Which part of the plant is below the soil?', 'frozen': 'root', 'adapted': 'root'}
+{'question': 'What provides light to the plant?', 'frozen': 'sun', 'adapted': 'sun'}
+{'question': 'Which part connects the roots to the flower?', 'frozen': 'leaf', 'adapted': 'leaf'}
+{'question': 'Which part is at the top of the plant?', 'frozen': 'root', 'adapted': 'root'}
+{'drawn_diagram_accuracy': {'frozen': 0.4, 'adapted': 0.4}}
+{'artifact': 'outputs/pix2struct_ai2d_adapter', 'format': 'org.valcorza.pix2struct-ai2d-base.adapter.v1', 'tensors': 29, 'bytes': 75522608, 'sha256': 'e6b175146c25cd26...'}
+{'reload_parity': {'identical_answers': 8, 'of': 8}, 'reloaded_best_epoch': 2}
+['pix2struct_ai2d_adapter', 'pix2struct_ai2d_answers.csv', 'pix2struct_ai2d_evaluation_report.json', 'pix2struct_ai2d_input_manifest.json', 'pix2struct_ai2d_result.json', 'pix2struct_ai2d_train.jsonl']
+[colab] Executing cell 13/13 - pix2struct_ai2d-33...
+{'option_shuffle_experiment': 'skipped (set RUN_OPTION_SHUFFLE_EXPERIMENT = True to run it); nothing was trained or written'}
+[colab] Saving notebook with outputs to '/home/kurt/colab-runs/pix2struct-ai2d-pipeline-39d8e03-30f023/pix2struct_ai2d_colab_39d8e03_colab-cli-t4_output.ipynb'...

@@ -1,4 +1,4 @@
-"""Per-repository template for tools/build_notebook.py (NOTEBOOK_SPEC 2.0 §4 standalone carrier).
+"""Per-repository template for tools/build_notebook.py (NOTEBOOK_SPEC 2.2 §4 standalone carrier).
 
 Only the task-specific prose and stage cells live here. Runtime install, the embedded pipeline
 modules (pipeline.py, metrics.py, samples.py), and the model pin/stage/verify cells are produced by
@@ -20,8 +20,22 @@ TEMPLATE = {
     "notebook_name": "pix2struct_ai2d_colab.ipynb",
     "profile": "E2E",
     "mode": "GUIDED",
+    "isolated_runtime": True,
+    "infrastructure_labels": True,
+    # The fleet's uv isolated-environment mechanism (generator /2.2): managed CPython, a
+    # size- and SHA-256-verified uv wheel, and a lock compiled from the pyproject pins with
+    # `uv pip compile pyproject.toml --python-version 3.12 --python-platform x86_64-manylinux_2_28 --generate-hashes
+    # --only-binary :all: -o tutorials/requirements-colab.lock.txt`.
+    "managed_python": "3.12.12",
+    "uv": {
+        "version": "0.12.15",
+        "url": "https://files.pythonhosted.org/packages/1e/fd/432451d732917c49152a291de3ef171aa6b0f1a22d39780fb2c1f085ca4c/uv-0.12.15-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "bytes": 20081404,
+        "sha256": "aee9802f46bae436bd91751bb33ddeb379ef1596b5c19df193219d545d244b60",
+    },
+    "lock": "tutorials/requirements-colab.lock.txt",
     "run_all": (
-        "Selecting **Run all** in a fresh supported runtime installs the pinned dependencies, stages and digest-verifies the "
+        "Selecting **Run all** in a fresh supported runtime builds an isolated hash-locked environment from the pinned dependencies (nothing is installed into the notebook kernel, so no restart is needed), stages and digest-verifies the "
         "pinned `google/pix2struct-ai2d-base` snapshot (a 565 MB `model.safetensors`), downloads one digest-pinned parquet "
         "shard of AI2D test questions from the Hugging Face Hub (62 MB, no credential, refused on any size or SHA-256 "
         "mismatch), cuts a seeded subset of whole diagrams into training, validation and test questions so no diagram is "
@@ -31,17 +45,18 @@ TEMPLATE = {
         "scores the held-out questions again per category, re-answers the drawn diagram with the adapted model, exports the "
         "adapter as safetensors with a manifest, and reloads that artifact into a fresh pipeline to verify answer parity. The "
         "default path needs no repository clone, no DIMER worker or service, no credential, no upload dialog and no "
-        "configuration edit (NOTEBOOK_SPEC 2.0 §5). A CUDA runtime is used automatically when present; the CPU path works but "
-        "is slow (every question renders its own header and is encoded at up to 2,048 patches), and the timings of the first "
-        "clean run are recorded in `docs/release-verification.md`."
+        "configuration edit (NOTEBOOK_SPEC 2.2 §5). A CUDA runtime is used automatically when present; the CPU path works but "
+        "is slow (every question renders its own header and is encoded at up to 2,048 patches). The recorded Kaggle Tesla T4 run took "
+        "1,173.5 s in total (688.6 s of it the fine-tuning); the full CPU path has not been timed and is estimated at well over an hour "
+        "(see the Prerequisites), so choose a GPU runtime."
     ),
     "byod": (
-        "After the tutorial workflow completes, set `USE_BYOD = True` in Section 4 and re-run from that cell to upload one zip "
-        "holding a `records.jsonl` (or `records.json`) of `{{id, image, question, options, answer}}` objects — `image` a file "
+        "After the tutorial workflow completes, set `USE_BYOD = True` and `BYOD_PATH` (a zip already in the runtime; on Colab an empty path opens an upload dialog) in Section 4, then run the Section 4 cell and every code cell of Sections 5–9 in order (Sections 6 and 7 reload the frozen pipeline from the verified snapshot when `pipe` was adapted by the AI2D pass, so the frozen numbers are the base model's on your data) to supply one zip "
+        "holding a `records.jsonl` (or `records.json`) of `{id, image, question, options, answer}` objects — `image` a file "
         "name inside the zip, `options` 2–6 distinct strings, `answer` the zero-based index of the correct option, optional "
-        "`image_id` and `category` — beside the image files. They pass through the same validation, seeded diagram-disjoint "
+        "`image_id` and `category` — beside the image files (folders inside the zip are kept, so `image` may be `images/x.png`; the records file may sit at the root or inside one folder, and image paths are relative to it). They pass through the same validation, seeded diagram-disjoint "
         "split, baselines, fine-tuning, held-out evaluation, artifact export and reload-parity cells as the AI2D sample. The "
-        "expected schema and the ceilings are stated in the Prerequisites and in Section 4, and uploaded files stay inside "
+        "expected schema and the ceilings (8..5,000 records, at most 5,002 zip members and 2 GiB extracted) are stated in the Prerequisites and in Section 4, and uploaded files stay inside "
         "this runtime. BYOD is optional and never part of the default path."
     ),
     "pipeline_class": "Pix2StructAI2DPipeline",
@@ -101,6 +116,9 @@ TEMPLATE = {
         "and upcast to float32 at load, digest-pinned in the manifest); the processor is the VQA variant, which renders the "
         "header. Section 3 stages and digest-verifies the snapshot before the processor or the model is constructed."
     ),
+    "guided": {"opening": [(
+        "**Who this notebook is for.** A learner who knows basic Python, has used Colab or Jupyter and has met multiple-choice evaluation, and wants to see how an OCR-free model answers questions about science diagrams, how to read its accuracy honestly against chance and baselines that never look at the diagram, and how a bounded fine-tuning is measured and exported. The audience is students and practitioners preparing their own diagram-QA data; no prior experience with Pix2Struct or fine-tuning is assumed — each term is explained where it first matters and again in the **Glossary**. A T4 GPU runtime is recommended (CPU works but the fine-tuning is slow).\n\n**Input → Model → Output.**\n\n| | |\n|---|---|\n| Input | a diagram with a question and numbered options rendered above it: AI2D test questions from one digest-pinned shard, split by whole diagram (360 train, 82 validation, 161 test questions in the recorded run), or your own zip |\n| Model | Pix2Struct AI2D-base: the composite image is encoded as patches and a decoder generates the answer text, matched to an option; only the last two decoder blocks are trained |\n| Output | an answer per question, held-out accuracy and unmatched rate per category beside chance and two non-visual baselines, and a safetensors adapter that reloads with identical answers |\n\n**How to use this notebook.** Choose **Runtime → Change runtime type → T4 GPU**, then **Runtime → Run all**. Run all completes in one pass: Section 1 installs nothing into the notebook's own Python, so no restart is needed (the recorded hosted run of the previous version needed one; this version removes it). Sections 1–3 are **infrastructure** — the isolated environment, the carried package and the verified snapshot — and their cells are collapsed; you may run them without studying them. The learning path starts in Section 4. Form fields (`# @param`) are the only values meant to be edited, and the defaults reproduce the recorded run. Before each principal result the notebook asks you to **Predict**; after it comes a collapsible **Check your reasoning** with a worked answer from the recorded Kaggle T4 run of 26 September 2026. **Troubleshooting**, a **Glossary** and a **Conclusion** template are at the end. Writing your predictions down is optional.\n\n**Roadmap:** 1–3 infrastructure → 4 the AI2D sample and a diagram-level split *(evaluation practice: leakage)* → 5 the inference contract on a drawn diagram → 6 chance, two baselines and the frozen model *(core concept: accuracy and the unmatched rate)* → 7 bounded fine-tuning of two decoder blocks *(core concept: what is trained)* → 8 held-out evaluation → 9 answers again, export and reload *(engineering)* → conclude."
+    )]},
     "learning_objectives": (
         "install the pinned runtime; read what the carried pipeline, metrics and dataset modules guarantee; stage and "
         "digest-verify the immutable upstream snapshot; download a digest-pinned shard of labelled diagram questions, "
@@ -122,9 +140,11 @@ TEMPLATE = {
         "exposes none of these."
     ),
     "prerequisites": [
-        "- **Runtime:** a fresh supported runtime (Google Colab or Jupyter, Python 3.12). The default path runs on CPU (float32) and uses CUDA automatically when available; a GPU runtime is recommended for Sections 6–8. Every question renders its own header above its diagram and is encoded at up to 2,048 patches, so each answer costs seconds on CPU. The pinned `torch==2.14.0` install and the 565 MB checkpoint are the large downloads of the run; the question shard adds 62 MB.",
+        '- **Learner:** basic Python and Colab or Jupyter familiarity; no prior experience with Pix2Struct or fine-tuning. The metrics, baselines, image-level splits, validation selection and adapters are explained where they are first used and again in the Glossary.',
+        "- **Runtime:** a fresh supported **Linux x86_64** runtime (Google Colab, Kaggle or Linux Jupyter). Section 1 builds its own Python 3.12.12 environment from a hash-locked list of manylinux wheels, so the Python version of the kernel itself does not matter and nothing is installed into it; a Windows or macOS kernel is not supported. The default path runs on CPU (float32) and uses CUDA automatically when available; a GPU runtime is recommended for Sections 6–8. Every question renders its own header above its diagram and is encoded at up to 2,048 patches, so each answer costs seconds on CPU. The pinned `torch==2.14.0` install and the 565 MB checkpoint are the large downloads of the run; the question shard adds 62 MB.",
+        "- **Duration:** the recorded Kaggle Tesla T4 run (26 September 2026) took **1,173.5 s** for the whole default path, 688.6 s of it the fine-tuning in Section 7. **CPU has not been timed** for the whole path: the recorded CPU inference runs answered one question in 2.2–2.3 s, and the default path answers about 770 questions (Sections 5, 6, 8 and 9 plus four validation passes) and back-propagates through 360 training questions three times, so expect **well over an hour, probably several** — an estimate derived from those figures, not a measurement. Choose **Runtime → Change runtime type → T4 GPU** before Section 1.",
         "- **Knowledge:** basic Python and PIL; what an encoder–decoder model's generated tokens are; what accuracy against chance and against baselines that never see the image does and does not show; why a confident answer is not a correct one.",
-        "- **Data contract:** records are `{{id, image, question, options, answer}}` — an image file decodable by Pillow with sides between `MIN_IMAGE_SIDE` (16) and `MAX_IMAGE_SIDE` (4096) px, a non-empty question of at most `MAX_QUESTION_CHARS` (256) characters, `MIN_OPTIONS`..`MAX_OPTIONS` (2..6) distinct options of at most `MAX_OPTION_CHARS` (64) characters, and `answer` the zero-based index of the correct option; optional `image_id` groups questions on the same diagram (BYOD defaults it to the image file name) and optional `category` labels the breakdown. Ids match `[A-Za-z0-9_.:-]{{1,64}}` and are unique; a dataset needs 8..5,000 records; every question on the same diagram lands in the same split so a test diagram is never trained on. BYOD accepts one zip of images plus a `records.jsonl` / `records.json` in that shape.",
+        "- **Data contract:** records are `{id, image, question, options, answer}` — an image file (a path relative to the records file; folders inside a BYOD zip are kept) decodable by Pillow with sides between `MIN_IMAGE_SIDE` (16) and `MAX_IMAGE_SIDE` (4096) px, a non-empty question of at most `MAX_QUESTION_CHARS` (256) characters, `MIN_OPTIONS`..`MAX_OPTIONS` (2..6) distinct options of at most `MAX_OPTION_CHARS` (64) characters, and `answer` the zero-based index of the correct option; optional `image_id` groups questions on the same diagram (BYOD defaults it to the image file name) and optional `category` labels the breakdown. Ids match `[A-Za-z0-9_.:-]{1,64}` and are unique; a dataset needs 8..5,000 records; every question on the same diagram lands in the same split so a test diagram is never trained on. BYOD accepts one zip of images plus a `records.jsonl` / `records.json` in that shape, at most 5,002 members and 2 GiB extracted; a zip is refused, with the file and the rule named, when it has no records file, more than one, a member path outside the zip's folder, or exceeds those ceilings.",
         "- **Validation is structural, not semantic:** every diagram is opened and decoded and every question checked against the same ceilings `answer` applies, but nothing checks that the marked answer is right — a mislabelled question is fine-tuned on without complaint.",
         "- **Privacy:** Do not upload confidential or restricted data to a hosted runtime unless you are authorized to process it there. The default path uploads nothing.",
         "- **External access (data):** besides the model snapshot, the default path downloads one object from the Hub dataset repository `lmms-lab-encoder/ai2d` at the immutable revision `c83a9b96…` (`data/test-00000-of-00002.parquet`, 62,292,686 bytes) and refuses it unless its size and SHA-256 match the pins carried in `samples.py`; the diagrams are written to the cache under their own content digest. The Hub mirror declares no licence; AI2D is published by the Allen Institute for AI (Kembhavi et al., 2016) — check its terms before redistributing the diagrams or an adapter trained on them.",
@@ -144,36 +164,74 @@ TEMPLATE = {
                 "each question `letter-label` when every option is a one- or two-character diagram label and `text-option` "
                 "otherwise. `validate_dataset` then opens and decodes every diagram and checks every question against the "
                 "contract, `check_split_disjoint` asserts no diagram is shared, and the training split is written to "
-                "`outputs/{stem}_train.jsonl` in the shape BYOD expects.\n\n"
+                "`outputs/{stem}_train.jsonl` in the shape BYOD expects. With `USE_BYOD`, the zip named by `BYOD_PATH` (or uploaded on Colab) is extracted with its folders kept, must hold exactly one `records.jsonl` / `records.json` (image paths relative to it), at most 5,002 members and 2 GiB extracted, and every refusal names the zip and the rule.\n\n"
                 "Look for: the shard's row count, the question and diagram counts per split, the category mix, the "
                 "distribution of correct positions (the position-prior baseline in Section 6 is built from it), three "
                 "digests, and four refusal probes — a duplicate id, a missing image file, an answer index out of range and a "
                 "dataset too small to split — each rejected before `torch` does anything."
+                '\n\n**Predict before running:** why split by diagram rather than by question? Which option position do you think is most often correct in training?'
             ),
             "code": (
                 "import collections\n"
                 "import hashlib\n"
                 "import io\n"
                 "import json\n"
+                "import shutil\n"
                 "import zipfile\n\n"
                 "USE_BYOD = False  # @param {{type:\"boolean\"}}\n"
+                "BYOD_PATH = ''  # @param {{type:\"string\"}}\n"
                 "SPLIT_SEED = 42  # @param {{type:\"integer\"}}\n\n"
                 "os.makedirs('outputs', exist_ok=True)\n"
-                "if USE_BYOD:\n"
-                "    from google.colab import files\n"
-                "    uploaded = files.upload()\n"
-                "    file_name, payload = next(iter(uploaded.items()))\n"
+                'def byod_file(path, kind, suffixes=()):\n'
+                '    """BYOD path first (works on Colab, Kaggle and Jupyter); on Colab an empty path opens the upload dialog."""\n'
+                '    if str(path).strip():\n'
+                '        source = Path(str(path).strip()).expanduser()\n'
+                '        if not source.is_file():\n'
+                "            raise FileNotFoundError(f'BYOD path {{str(source)!r}} does not exist or is not a file (relative paths start at {{os.getcwd()}}); give the path of one {{kind}}.')\n"
+                '    else:\n'
+                '        try:\n'
+                '            from google.colab import files\n'
+                '        except ImportError:\n'
+                "            raise RuntimeError(f'BYOD is on but its path field is empty, and the upload dialog exists only in Google Colab: copy the {{kind}} into this runtime (or attach it as a Kaggle dataset) and set the path field.') from None\n"
+                '        uploaded = files.upload()\n'
+                '        if len(uploaded) != 1:\n'
+                "            raise ValueError(f'Upload exactly one {{kind}} (received {{len(uploaded)}} files; a cancelled dialog sends none). Run this cell again.')\n"
+                '        name, payload = next(iter(uploaded.items()))\n'
+                "        source = Path('work') / Path(name).name\n"
+                '        source.parent.mkdir(parents=True, exist_ok=True)\n'
+                '        source.write_bytes(payload)\n'
+                '    if suffixes and not source.name.lower().endswith(tuple(suffixes)):\n'
+                '        raise ValueError(f\'{{source.name}}: expected a {{kind}} ending in {{" or ".join(suffixes)}}.\')\n'
+                '    return source\n'
+                '\n'
+                '\n'
+                'if USE_BYOD:\n'
+                "    byod_zip = byod_file(BYOD_PATH, 'zip of images plus records.jsonl', ('.zip',))\n"
+                '    file_name, payload = byod_zip.name, byod_zip.read_bytes()\n'
                 "    byod_dir = Path('work') / 'byod'\n"
+                "    shutil.rmtree(byod_dir, ignore_errors=True)\n"
                 "    byod_dir.mkdir(parents=True, exist_ok=True)\n"
+                "    BYOD_MAX_MEMBERS, BYOD_MAX_EXPANDED_BYTES = MAX_RECORDS + 2, 2 * 1024 ** 3  # one image per record plus the records file; 2 GiB extracted\n"
                 "    with zipfile.ZipFile(io.BytesIO(payload)) as archive:\n"
-                "        for member in archive.infolist():\n"
-                "            name = Path(member.filename).name\n"
-                "            if member.is_dir() or not name or name.startswith('.'):\n"
-                "                continue\n"
-                "            (byod_dir / name).write_bytes(archive.read(member))\n"
-                "    records_file = next(p for p in (byod_dir / 'records.jsonl', byod_dir / 'records.json') if p.is_file())\n"
+                "        members = [m for m in archive.infolist() if not m.is_dir() and Path(m.filename).name and not Path(m.filename).name.startswith('.') and '__MACOSX' not in m.filename]\n"
+                "        expanded = sum(m.file_size for m in members)\n"
+                "        if len(members) > BYOD_MAX_MEMBERS or expanded > BYOD_MAX_EXPANDED_BYTES:\n"
+                "            raise ValueError(f'{{file_name}}: {{len(members)}} files and {{expanded:,}} bytes when extracted exceed the BYOD ceiling of {{BYOD_MAX_MEMBERS}} files / {{BYOD_MAX_EXPANDED_BYTES:,}} bytes (a dataset holds at most MAX_RECORDS = {{MAX_RECORDS}} records); pack fewer or smaller images.')\n"
+                "        for member in members:  # folders inside the zip are kept, so records may name images as images/x.png\n"
+                "            relative = Path(member.filename.replace(chr(92), '/'))\n"
+                "            if relative.is_absolute() or '..' in relative.parts:\n"
+                "                raise ValueError(f'{{file_name}}: member {{member.filename!r}} points outside the zip (absolute path or ..); repack it with relative paths.')\n"
+                "            target = byod_dir / relative\n"
+                "            target.parent.mkdir(parents=True, exist_ok=True)\n"
+                "            target.write_bytes(archive.read(member))\n"
+                "    records_files = sorted(p for p in byod_dir.rglob('*') if p.is_file() and p.name in ('records.jsonl', 'records.json'))\n"
+                "    if len(records_files) != 1:\n"
+                "        found = [str(p.relative_to(byod_dir)) for p in records_files]\n"
+                "        raise ValueError(f'{{file_name}}: the zip must hold exactly one records.jsonl (or records.json) — at its root or inside one folder — next to the images; found {{found or \"none\"}}. Add one JSON object per line.')\n"
+                "    records_file = records_files[0]\n"
                 "    records = load_byod_dataset(records_file)\n"
-                "    splits = split_dataset(records, seed=SPLIT_SEED, base_dir=byod_dir)\n"
+                "    splits = split_dataset(records, seed=SPLIT_SEED, base_dir=records_file.parent)  # image paths are relative to the records file\n"
+                "    print({{'byod_zip': file_name, 'members': len(members), 'expanded_bytes': expanded, 'records_file': str(records_file.relative_to(byod_dir)), 'records': len(records)}})\n"
                 "    data_source = 'BYOD (' + file_name + ')'\n"
                 "    raw_rows = {{'byod': len(records)}}\n"
                 "else:\n"
@@ -205,6 +263,11 @@ TEMPLATE = {
                 "        print({{'probe': name, 'verdict': 'accepted'}})\n"
                 "    except (TypeError, ValueError) as exc:\n"
                 "        print({{'probe': name, 'rejected': str(exc)[:110]}})"
+            ),
+        },
+        {
+            "md": (
+                '<details><summary>Check your reasoning</summary>Several questions are asked about the same diagram, so a question-level split would put a test diagram in training. The split keeps whole diagrams together (360 / 82 / 161 questions in the recorded run), `check_split_disjoint` confirms no diagram is shared, and the refusal probes are rejected before `torch` does anything. The position prior is printed here and used as a baseline in Section 6.</details>'
             ),
         },
         {
@@ -317,16 +380,25 @@ TEMPLATE = {
                 "(`letter-label` questions name lettered parts of the diagram; `text-option` questions have words as options). "
                 "The checkpoint was fine-tuned on AI2D's training questions, so expect it well above chance here; whether it "
                 "is, is recorded as `frozen_beats_chance` rather than assumed. The measured values of the first clean run are "
-                "recorded in `docs/release-verification.md` and the model card."
+                "recorded in `docs/release-verification.md` and the model card. If `pipe` was adapted by an earlier run of Section 7, the cell first "
+                "reloads the frozen pipeline from the verified snapshot (Section 7 does the same), so these numbers are always the frozen model's."
+                "\n\n**Predict before running:** the checkpoint was fine-tuned on AI2D's training questions. How far above chance (0.25 on four options) will it be on these test questions?"
             ),
             "code": (
+                '# SWP-F: adapt() trains the last decoder blocks of `pipe` in place. If this pipeline was already adapted (a re-run\n'
+                '# after Section 7), start again from the pinned, digest-verified snapshot, so the frozen scores and every new\n'
+                '# adaptation begin from the frozen weights they are labelled with.\n'
+                'if pipe.adapter is not None:\n'
+                '    pipe = Pix2StructAI2DPipeline.from_pretrained(weights_dir=WEIGHTS_DIR)\n'
+                "    print({{'reloaded_frozen_pipeline': True, 'reason': 'the previous pipeline had been adapted in place'}})\n"
+                '\n'
                 "baseline_position = position_prior_baseline(train_records, test_records)\n"
                 "baseline_longest = longest_option_baseline(test_records)\n"
                 "print({{'position_prior_baseline': round(baseline_position['accuracy'], 3), 'note': baseline_position['note'], 'n': baseline_position['n']}})\n"
                 "print({{'longest_option_baseline': round(baseline_longest['accuracy'], 3), 'chance': round(baseline_longest['chance'], 3)}})\n"
                 "t0 = time.perf_counter()\n"
                 "frozen_test = pipe.evaluate(test_records, max_new_tokens=ANSWER_MAX_TOKENS)\n"
-                "print({{'frozen_model_test': {{'accuracy': round(frozen_test['accuracy'], 3), 'unmatched_rate': round(frozen_test['unmatched_rate'], 3), 'chance': round(frozen_test['chance'], 3)}}, 'n': frozen_test['n'], 'verdict': frozen_test['verdict'], 'seconds': round(time.perf_counter() - t0, 1)}})\n"
+                "print({{'frozen_model_test': {{'accuracy': round(frozen_test['accuracy'], 3), 'unmatched_rate': round(frozen_test['unmatched_rate'], 3), 'chance': round(frozen_test['chance'], 3)}}, 'n': frozen_test['n'], 'verdict': frozen_test['verdict'], 'adapted': frozen_test['adapted'], 'seconds': round(time.perf_counter() - t0, 1)}})\nif frozen_test['adapted']:\n    raise RuntimeError('the pipeline scored here carries an adapter; these are not frozen-model numbers')\n"
                 "print({{'by_category': {{'position_prior': baseline_position['by_category'], 'frozen': frozen_test['by_category']}}}})\n"
                 "print({{'definitions': frozen_test['definitions']}})\n"
                 "frozen_predictions = {{r['id']: r for r in pipe.predict(test_records[:3], max_new_tokens=ANSWER_MAX_TOKENS)}}\n"
@@ -334,6 +406,11 @@ TEMPLATE = {
                 "    print({{'category': record['category'], 'question': record['question'], 'options': record['options'], 'correct': record['options'][record['answer']], 'frozen': frozen_predictions[record['id']]['answer']}})\n"
                 "frozen_beats_chance = frozen_test['accuracy'] > frozen_test['chance']\n"
                 "print({{'frozen_beats_chance': frozen_beats_chance}})"
+            ),
+        },
+        {
+            "md": (
+                '<details><summary>Check your reasoning</summary>Less than you might expect. In the recorded run chance was 0.25, the position prior 0.193, the longest option 0.248 and the frozen model **0.354** (letter-label 0.343 of 35 questions, text-option 0.357 of 126), with 7.5 % of answers matching no option. `frozen_beats_chance` was `True`, but these questions are hard for a 282 M-parameter model.</details>'
             ),
         },
         {
@@ -352,6 +429,7 @@ TEMPLATE = {
                 "that selection coarse — one question is more than a point of accuracy — which is why the held-out split in "
                 "Section 8 is what the numbers are read from. If no epoch beats the frozen model on validation, the selector "
                 "keeps epoch 0 and the adapter reproduces the frozen answers; that outcome is reported, not hidden."
+                '\n\n**Predict before running:** will the validation accuracy rise every epoch while the training loss falls?'
             ),
             "code": (
                 "EPOCHS = 3  # @param {{type:\"integer\"}}\n"
@@ -365,10 +443,22 @@ TEMPLATE = {
                 "    if 'note' in entry:\n"
                 "        row['note'] = entry['note']\n"
                 "    print(row)\n\n\n"
+                '# SWP-F: adapt() trains the last decoder blocks of `pipe` in place. If this pipeline was already adapted (a re-run\n'
+                '# after Section 7), start again from the pinned, digest-verified snapshot, so the frozen scores and every new\n'
+                '# adaptation begin from the frozen weights they are labelled with.\n'
+                'if pipe.adapter is not None:\n'
+                '    pipe = Pix2StructAI2DPipeline.from_pretrained(weights_dir=WEIGHTS_DIR)\n'
+                "    print({{'reloaded_frozen_pipeline': True, 'reason': 'the previous pipeline had been adapted in place'}})\n"
+                '\n'
                 "t0 = time.perf_counter()\n"
                 "adapt_result = pipe.adapt(train_records, val_records, epochs=EPOCHS, lr=LEARNING_RATE, batch_size=BATCH_SIZE, trainable_decoder_layers=TRAINABLE_DECODER_LAYERS, progress=report)\n"
                 "adapt_seconds = round(time.perf_counter() - t0, 1)\n"
                 "print({{'trainable_parameters': adapt_result['n_trainable'], 'total_parameters': adapt_result['n_total'], 'training_questions': adapt_result['n_train'], 'best_epoch': adapt_result['best_epoch'], 'selection': adapt_result['selection'], 'seconds': adapt_seconds}})"
+            ),
+        },
+        {
+            "md": (
+                '<details><summary>Check your reasoning</summary>No. In the recorded run validation accuracy went 0.366 (epoch 0, frozen) → 0.366 → **0.378** → 0.354 while the training loss fell 1.7402 → 1.5653 → 1.3107, so epoch 2 was kept: the third epoch had started to overfit. With 82 validation questions one question is more than a point, so the selection is coarse. Each run of this cell restarts from the frozen weights.</details>'
             ),
         },
         {
@@ -384,10 +474,12 @@ TEMPLATE = {
                 "seeded draw of one shard gives **no dispersion estimate** — one question is more than half a point — so the "
                 "deltas are sample-sanity evidence that the adaptation contract works, not a benchmark, and a gain on AI2D "
                 "says nothing about your diagrams until you measure it there."
+                '\n\n**Predict before running:** how many more of the 161 test questions will the adapted model get right?'
             ),
             "code": (
                 "adapted_test = pipe.evaluate(test_records, max_new_tokens=ANSWER_MAX_TOKENS)\n"
                 "adapted_val = pipe.evaluate(val_records, max_new_tokens=ANSWER_MAX_TOKENS)\n"
+                "print({{'scored_weights': {{'frozen_test_adapted': frozen_test['adapted'], 'adapted_test_adapted': adapted_test['adapted']}}, 'best_epoch': adapt_result['best_epoch']}})\n"
                 "comparison = {{\n"
                 "    'accuracy': {{'chance': round(frozen_test['chance'], 3), 'position_prior': round(baseline_position['accuracy'], 3), 'longest_option': round(baseline_longest['accuracy'], 3), 'frozen': round(frozen_test['accuracy'], 3), 'adapted': round(adapted_test['accuracy'], 3)}},\n"
                 "    'unmatched_rate': {{'frozen': round(frozen_test['unmatched_rate'], 3), 'adapted': round(adapted_test['unmatched_rate'], 3)}},\n"
@@ -426,6 +518,11 @@ TEMPLATE = {
         },
         {
             "md": (
+                '<details><summary>Check your reasoning</summary>Two. The recorded test accuracy went 0.354 → 0.366 (57 → 59 of 161) and the unmatched rate 0.075 → 0.068; letter-label fell to 0.314 while text-option rose to 0.381. A two-question gain on one split has no dispersion estimate — `adapted_beats_frozen` is `True` but the evidence is that the contract works, not that the model reads diagrams better.</details>'
+            ),
+        },
+        {
+            "md": (
                 "## 9. Re-answer the drawn diagram, export the adapter and reload it\n\n"
                 "The ten questions on the drawn plant from Section 5 are answered again by the adapted model and scored against "
                 "the options you drew — a different image family from the AI2D diagrams it was tuned on, so this is a small look "
@@ -440,6 +537,7 @@ TEMPLATE = {
                 "any tensor that is not an answer-decoder tensor, and overlays the tensors onto a freshly loaded base — a new "
                 "object from files, not the in-memory model (VER2). The cell asserts identical answers on eight test questions "
                 "(VER4)."
+                '\n\n**Predict before running:** will the reloaded adapter answer the eight test questions exactly as the in-memory model did?'
             ),
             "code": (
                 "import csv\n"
@@ -488,6 +586,51 @@ TEMPLATE = {
                 "print(sorted(os.listdir('outputs')))"
             ),
         },
+        {
+            "md": (
+                '<details><summary>Check your reasoning</summary>Yes: the recorded run reported 8 of 8 identical answers, with a 75,522,608-byte adapter of 29 tensors. On the drawn plant diagram the frozen and adapted models scored the same 4 of 10.</details>'
+            ),
+        },
+        {
+            "md": (
+                "### Optional experiment: the options are part of the input (off by default)\n\n"
+                "**Predict → change one thing → run → observe → explain.** The answer is generated text matched to the options rendered above the "
+                "diagram, so the option set is part of the request. Set `RUN_OPTION_SHUFFLE_EXPERIMENT = True` and run this cell: it takes "
+                "`EXPERIMENT_QUESTIONS` test questions, answers each with the adapted model as is, then again with the options **reversed** and "
+                "again with the correct option **removed**, and prints the three answers side by side. Predict first: will the matched option "
+                "follow the shuffle (same text, new position), will the answer text change, and what will the model say when the right option "
+                "is gone? The cell reads `pipe` but trains nothing and writes nothing, so the default path and the exported "
+                "artifact are unchanged whether or not it runs."
+            ),
+            "code": (
+                "RUN_OPTION_SHUFFLE_EXPERIMENT = False  # @param {{type:\"boolean\"}}\n"
+                "EXPERIMENT_QUESTIONS = 3  # @param {{type:\"integer\"}}\n\n"
+                "if not RUN_OPTION_SHUFFLE_EXPERIMENT:\n"
+                "    print({{'option_shuffle_experiment': 'skipped (set RUN_OPTION_SHUFFLE_EXPERIMENT = True to run it); nothing was trained or written'}})\n"
+                "else:\n"
+                "    experiment_rows = []\n"
+                "    for record in test_records[:max(1, min(EXPERIMENT_QUESTIONS, len(test_records)))]:\n"
+                "        image = Image.open(record['image']).convert('RGB')\n"
+                "        original = record['options']\n"
+                "        reversed_options = list(reversed(original))\n"
+                "        without_correct = [o for i, o in enumerate(original) if i != record['answer']]\n"
+                "        variants = {{'as_is': original, 'reversed': reversed_options, 'correct_removed': without_correct}}\n"
+                "        row = {{'question': record['question'], 'correct': original[record['answer']]}}\n"
+                "        for name, options in variants.items():\n"
+                "            answer = pipe.answer(image, record['question'], options, max_new_tokens=ANSWER_MAX_TOKENS)\n"
+                "            row[name] = {{'answer': answer['answer'], 'matched': None if answer['choice_index'] is None else options[answer['choice_index']], 'position': answer['choice_index']}}\n"
+                "        row['matched_text_followed_reversal'] = row['as_is']['matched'] == row['reversed']['matched']\n"
+                "        row['answer_changed_without_correct'] = row['correct_removed']['answer'] != row['as_is']['answer']\n"
+                "        experiment_rows.append(row)\n"
+                "        print(row)\n"
+                "    print({{'option_shuffle_experiment': {{'questions': len(experiment_rows), 'matched_text_followed_reversal': sum(r['matched_text_followed_reversal'] for r in experiment_rows), 'answer_changed_without_correct': sum(r['answer_changed_without_correct'] for r in experiment_rows), 'trained': False, 'written': False}}}})"
+            ),
+        },
+        {
+            "md": (
+                '<details><summary>Check your reasoning</summary>No recorded run of this experiment exists, so there is no reference number. What to look for: when the matched text follows the reversal the model is reading the option *text*, not its position; when it does not, the position prior is doing some of the work. With the correct option removed the model still answers — usually with one of the remaining options, sometimes with text that matches none — which is why an answer is never evidence of correctness.</details>'
+            ),
+        },
     ],
     "closing": (
         "## Interpretation and limits\n\n"
@@ -517,19 +660,53 @@ TEMPLATE = {
         "fine-tuning, evaluate against chance, two trivial baselines and the frozen model on a diagram-disjoint split, and emit "
         "the shown machine-readable artifacts — without the repository being reachable. It does **not** establish benchmark "
         "superiority, accuracy on any other diagram population, or production fitness.\n\n"
-        "**Optional experiments (they do not affect the default path):** raise `LEARNING_RATE` and watch the training loss "
-        "fall while the validation accuracy drops and the selector keeps an early epoch; set `TRAINABLE_DECODER_LAYERS = 1` and "
-        "compare the artifact size and the held-out accuracy; shuffle the options of a test question and watch the answer "
-        "follow them; or bring your own diagrams through BYOD and read the baselines before the adapted number.\n\n"
+        "**Optional experiments (they do not affect the default path or its exported artifact until you re-run Section 9):** each "
+        "re-run of the Section 7 cell first reloads the frozen pipeline from the verified snapshot when `pipe` already carries an "
+        "adapter, so every experiment starts from the base weights and its epoch 0 equals the Section 6 frozen validation score. "
+        "Raise `LEARNING_RATE` in Section 7, re-run the Section 7 cell and then the Section 8 cell, and watch the training loss "
+        "fall while the validation accuracy drops and the selector keeps an early epoch; set `TRAINABLE_DECODER_LAYERS = 1`, "
+        "re-run the Section 7, 8 and 9 cells and compare the artifact size (fewer tensors) and the held-out accuracy — the "
+        "artifact always reproduces the in-memory model because no tensor outside the exported set was ever trained; run the "
+        "option-shuffle experiment cell above Section 9's checkpoint; or bring your own diagrams through BYOD (Section 4 cell, "
+        "then the Sections 5–9 cells in order) and read the baselines before the adapted number.\n\n"
+        '## Troubleshooting\n\n'
+        '- **Section 1 stops with "This notebook needs a Linux x86_64 runtime"** — use Google Colab, Kaggle or a Linux x86_64 Jupyter server.\n'
+        '- **The uv wheel fails its size/SHA-256 check, or a download in Section 1 times out** — run Section 1 again; a complete environment is reused and an incomplete one is finished. If it repeats, `files.pythonhosted.org` or `pypi.org` is blocked or altered.\n'
+        '- **You re-ran Section 1 on its own** — nothing is lost: it keeps the running worker and every variable. After a session restart, run from the top.\n'
+        '- **"The isolated environment\'s Python process exited"** or **CUDA out of memory** — restart the session and choose **Run all** on a GPU runtime; lower `BATCH_SIZE` if it repeats (numbers will differ slightly).\n'
+        '- **Section 3 reports a size or SHA-256 mismatch, or cannot reach the Hub** — the message names the file. Delete the folder Section 3 prints as `weights_dir` and run Section 3 again.\n'
+        '- **A `sha256` or size error naming the AI2D parquet shard in Section 4** — the cached file under `weights/ai2d/` is incomplete; delete it and run Section 4 again.\n'
+        "- **`adapted_beats_frozen` is `False`** — expected to be possible: the checkpoint already saw AI2D's training questions; read the validation curve and the selected epoch.\n"
+        '- **BYOD: "BYOD path … does not exist" / "the upload dialog exists only in Google Colab" / "Upload exactly one …"** — set `BYOD_PATH` to the zip in the runtime (it works on Kaggle and Jupyter); on Colab an empty path opens the dialog, and a cancelled dialog stops with that message.\n'
+        '- **BYOD: "the zip must hold exactly one records.jsonl", "exceed the BYOD ceiling", "points outside the zip" or a `validate_dataset` refusal** — one records file at the root or in one folder, image paths relative to it (folders are kept), at most 5,002 members and 2 GiB extracted; refusals name the zip, the record index and the rule.\n'
+        '- **A re-run scores "frozen" numbers that differ from the first pass** — Sections 6 and 7 reload the frozen pipeline whenever `pipe` carries an adapter (they print `reloaded_frozen_pipeline`), so run the Section 6 cell again; `frozen_test["adapted"]` must be `False`.\n\n'
+        '## Glossary\n\n'
+        '- **OCR-free diagram QA** — answering from the image alone, with the question and options rendered above the diagram.\n'
+        '- **Accuracy / unmatched rate** — share of answers that match the correct option; share of answers that match no option (counted wrong).\n'
+        '- **Chance** — the mean of 1/options over the test questions: what uniform guessing scores.\n'
+        '- **Position-prior / longest-option baseline** — always the option position most often right in training; always the longest option text. Neither looks at the diagram.\n'
+        '- **`letter-label` / `text-option`** — questions about lettered parts of the diagram, and questions whose options are words.\n'
+        '- **Diagram-level split** — every question about one diagram stays in one split.\n'
+        '- **Epoch / validation selection** — one pass over the training records; keeping the epoch with the best validation score (epoch 0, the frozen model, included).\n'
+        '- **Held-out test split** — records never used for training or selection; no image appears in two splits.\n'
+        '- **Adapter / reload parity** — the trained decoder tensors only, overlaid on the pinned base; the reloaded model gives identical outputs.\n'
+        '- **Isolated environment** — the separate Python 3.12.12 environment Section 1 builds from the hash lock; every later cell runs there.\n'
+        '- **BYOD** — bring your own data: your images and labels through the same cells.\n\n'
+        '## Conclusion (your notes)\n\nWrite your conclusion from **your** run (optional); the recorded run is only a reference:\n\n'
+        '- Chance ___, position prior ___, longest option ___, frozen ___, adapted ___ (test accuracy).\n'
+        '- The kept epoch was ___; the unmatched rate moved from ___ to ___, which accounts for ___ of the change.\n'
+        '- The category that changed most was ___.\n'
+        '- One reason not to trust this number on my own diagrams yet: ___.\n'
+        '\n'
         "## References\n\n"
         "- Repository README: https://github.com/kurtvalcorza/pix2struct-ai2d-pipeline/blob/main/README.md\n"
         "- Repository model card: https://github.com/kurtvalcorza/pix2struct-ai2d-pipeline/blob/main/MODEL_CARD.md\n"
         "- Weight provenance: https://github.com/kurtvalcorza/pix2struct-ai2d-pipeline/blob/main/docs/WEIGHTS.md\n"
         "- Upstream model (Google, Apache-2.0): https://huggingface.co/{MODEL_ID}\n"
         "- Upstream code: https://github.com/google-research/pix2struct\n"
-        "- Pix2Struct: Screenshot Parsing as Pretraining for Visual Language Understanding (Lee et al., ICML 2023): https://arxiv.org/abs/2210.03347\n"
-        "- A Diagram Is Worth A Dozen Images — the AI2D dataset (Kembhavi et al., ECCV 2016): https://arxiv.org/abs/1603.07396\n"
+        "- Lee, K., Joshi, M., Turc, I., Hu, H., Liu, F., Eisenschlos, J., Khandelwal, U., Shaw, P., Chang, M.-W., & Toutanova, K. (2023). Pix2Struct: Screenshot parsing as pretraining for visual language understanding. *Proceedings of the 40th International Conference on Machine Learning* (PMLR 202). https://arxiv.org/abs/2210.03347 (https://doi.org/10.48550/arXiv.2210.03347)\n"
+        "- Kembhavi, A., Salvato, M., Kolve, E., Seo, M., Hajishirzi, H., & Farhadi, A. (2016). A diagram is worth a dozen images. *Computer Vision — ECCV 2016* (LNCS 9908). https://arxiv.org/abs/1603.07396 (https://doi.org/10.1007/978-3-319-46493-0_15)\n"
         "- AI2D test questions as mirrored on the Hugging Face Hub: https://huggingface.co/datasets/lmms-lab-encoder/ai2d\n"
-        "- DIMER Notebook Specification 2.0 and Model Card Specification 1.1 (fleet specs in the ml-worker repository)"
+        "- DIMER Notebook Specification 2.2 and Model Card Specification 1.1 (fleet specs in the ml-worker repository)"
     ),
 }
