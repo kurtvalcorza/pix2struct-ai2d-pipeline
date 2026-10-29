@@ -159,7 +159,7 @@ The rows below are the earlier inference-only notebook's runs; they are history 
 
 ## Current status
 
-**Candidate.** The current blob `138efae9` (code commit `24ba785`) shows a refused BYOD input as one `Refused: <file>: <reason>` line with no traceback, removes the earlier run's results and `outputs/` files and stops Run all at that cell, while genuine failures keep their traceback (NOTEBOOK_SPEC DAT19/DAT20); its hosted Colab T4 runs (the default path and a scripted refusal, `USE_BYOD=True;BYOD_PATH='/etc/hostname'`) are pending, and the hosted runs of earlier blobs, including `bddb3724`, are history for it (REL14). Before that change: The notebook was regenerated at `39d8e03` (blob `bddb37243376`) and that exact blob passed the Colab CLI
+**Candidate.** The current blob `be0e3ddf` (code commit `24ba785`) shows a refused BYOD input as one `Refused: <file>: <reason>` line with no traceback, removes the earlier run's results and `outputs/` files and stops Run all at that cell, while genuine failures keep their traceback (NOTEBOOK_SPEC DAT19/DAT20); its hosted Colab T4 runs (the default path and a scripted refusal, `USE_BYOD=True;BYOD_PATH='/etc/hostname'`) are pending, and the hosted runs of earlier blobs, including `bddb3724`, are history for it (REL14). Before that change: The notebook was regenerated at `39d8e03` (blob `bddb37243376`) and that exact blob passed the Colab CLI
 Tesla T4 run recorded above (2026-10-08 UTC, 13/13 code cells, 1029.1 s, one pass, no restart, 0 errors, default path
 only), reproducing every recorded measurement; promotion to Release-grade is a review decision for the exact release
 revision. The earlier Release-grade record identifies commit `75255e0` / blob `02cd3fb8fda4` only and remains history:
