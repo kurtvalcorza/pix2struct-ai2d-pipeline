@@ -157,9 +157,51 @@ The rows below are the earlier inference-only notebook's runs; they are history 
 |---|---|---|---|---|---|
 | 2026-09-14 | `ba0df32` / `5b2c54315436` | Kaggle CPU (`kurtvalcorza/dimer-nb2-pix2struct-ai2d` v1) | Default sample path | 393.4 s | **PASSED** — 8/8 ok code cells executed cleanly, 18 files, 569 MB staged |
 
+### Hosted Colab T4 runs of blob `be0e3ddf` (2026-10-29)
+
+These runs executed the PR head `930c900de81ef0a50c6503ccbd92243c60d30d72`, notebook `tutorials/pix2struct_ai2d_colab.ipynb` blob `be0e3ddf1e039c55ecf90f59eabdefd0e4f4f2b3`, fetched at the 40-character SHA and Git-blob verified, with the Colab CLI (`colab exec -f`) on a fresh Colab Tesla T4 session (not a browser `Run all`). Each `run_summary.json` records `verdict` `PASS`, `exec_exit_code` 0, `input_unchanged` true and `stop_verified` true (the VM was released), and the SHA-256 of each executed notebook equals the summary's `executed_sha256`.
+
+**Default path (2026-10-29 22:33:28 UTC start).** Default settings, no overrides; session `suite-pix2struct-930c900-30f0`; wall 1049.8 s (`wall_s`); `code_cells` 13, `executed_cells` 10, 0 errors. Retained evidence: [`docs/execution-evidence/2026-10-29-930c900/`](execution-evidence/2026-10-29-930c900/).
+
+Printed by the default run (verbatim lines from the executed outputs):
+
+```text
+{'verified_files': 8, 'revision': '0d6b2606efe05c77c1d0670647740802a9e68eef'}
+{'frozen_model_test': {'accuracy': 0.354, 'unmatched_rate': 0.075, 'chance': 0.25}, 'n': 161, 'verdict': 'measured', 'adapted': False, 'seconds': 86.0}
+{'trainable_parameters': 18879744, 'total_parameters': 282285696, 'training_questions': 360, 'best_epoch': 2, 'selection': 'highest validation accuracy', 'seconds': 670.6}
+{'accuracy': {'chance': 0.25, 'position_prior': 0.193, 'longest_option': 0.248, 'frozen': 0.354, 'adapted': 0.366}}
+{'delta_vs_frozen': {'accuracy': 0.012, 'unmatched_rate': -0.006}}
+{'reload_parity': {'identical_answers': 8, 'of': 8}, 'reloaded_best_epoch': 2}
+```
+
+**DAT20 refusal record (2026-10-29, blob `be0e3ddf`).** Overrides, set by `--set` on a copy of the blob: `USE_BYOD` `False` → `True` and `BYOD_PATH` `''` → `'/etc/hostname'` (the run copy differs from the blob in exactly those 2 source lines). The suite cut the run copy right after the refusing cell `pix2struct_ai2d-16`, dropping 19 cells (6 of them code cells), which reproduces `Run all` stopping at the first error; the cut copy is `run_copy.ipynb`, SHA-256 `e2fc151daed308a89863b4668118c18339accf5ffdd31567a23eda124b69637e` (Git blob `fa5ffeeb`), equal to the summary's `run_copy_sha256`. The cut copy's earlier code cells completed without an error output; the refusing cell's only error output has `ename` `IsolatedCellRefusal` and no traceback, and its output holds exactly one `Refused:` line:
+
+```text
+Refused: hostname: expected a zip of images plus records.jsonl ending in .zip; fix the input and run this cell again (the earlier results of this session and their outputs/ files were removed).
+```
+
+This run says nothing about the 19 cut cells, which did not run in it. Session `suite-pix2struct-930c900-30f0`, wall 111.4 s. Retained evidence: [`docs/execution-evidence/2026-10-29-930c900-refusal/`](execution-evidence/2026-10-29-930c900-refusal/).
+
+**Local-path redaction.** Local paths were replaced byte-wise by `<local-run-dir>` (and the Colab CLI install path by `<colab-cli-tool-dir>/`) before the first commit; each executed notebook and run copy was checked against its `run_summary.json` before any edit.
+
+| File (under `docs/execution-evidence/2026-10-29-930c900/`) | Captured SHA-256 | Committed SHA-256 |
+|---|---|---|
+| `pix2struct_ai2d_colab_930c900_colab-cli-t4_default.ipynb` | `1b13c5470ff6dfe849fb64cc4c6a219bc62c862f34200b8f9188e39ee283e0a6` | `1b13c5470ff6dfe849fb64cc4c6a219bc62c862f34200b8f9188e39ee283e0a6` (unchanged, no local path) |
+| `exec.log` | `09436fdf5a41e741a2f288cc6eee0b6f45d2337b2807895d5a686a9115c4aab4` | `8e83356f14adb5669e607907bb39583588e514a54ed60349953633c5ef093acf` (2 local-path replacements) |
+| `run_summary.json` | `58ba7ed39d4dccca0e3e27e61e6e04aa5cb9ef8f4ad517c0b011936dc0238b5d` | `58ba7ed39d4dccca0e3e27e61e6e04aa5cb9ef8f4ad517c0b011936dc0238b5d` (unchanged, no local path) |
+
+| File (under `docs/execution-evidence/2026-10-29-930c900-refusal/`) | Captured SHA-256 | Committed SHA-256 |
+|---|---|---|
+| `pix2struct_ai2d_colab_930c900_colab-cli-t4_refusal.ipynb` | `9036e5e9b356e1c5aa342a982daaa3dd583b3a86df3b653d762994cf4c28868c` | `9036e5e9b356e1c5aa342a982daaa3dd583b3a86df3b653d762994cf4c28868c` (unchanged, no local path) |
+| `exec.log` | `400cd6c4cf89a94b6413b756fc1ee60ffaa464bf4ca09588b03743c83b9f9564` | `0ee6cc63eb1dcfef3bb2b811a627f85f8c155f5276f824c24588722a9e80e2a5` (2 local-path replacements) |
+| `run_summary.json` | `58b6fea4e2852e7a0f03e0a532d4e252fe8d975c37c0d29b30d58171c0f46ffb` | `58b6fea4e2852e7a0f03e0a532d4e252fe8d975c37c0d29b30d58171c0f46ffb` (unchanged, no local path) |
+| `run_copy.ipynb` | `e2fc151daed308a89863b4668118c18339accf5ffdd31567a23eda124b69637e` | `e2fc151daed308a89863b4668118c18339accf5ffdd31567a23eda124b69637e` (unchanged, no local path) |
+
+Not exercised by these runs: an accepted BYOD input (REL12), a browser `Run all` of the interactive journeys (REL2), and every other open gate named in this file; these runs close none of them.
+
 ## Current status
 
-**Candidate.** The notebook was regenerated at `39d8e03` (blob `bddb37243376`) and that exact blob passed the Colab CLI
+**Candidate.** The current blob `be0e3ddf` (code commit `24ba785`) shows a refused BYOD input as one `Refused: <file>: <reason>` line with no traceback, removes the earlier run's results and `outputs/` files and stops Run all at that cell, while genuine failures keep their traceback (NOTEBOOK_SPEC DAT19/DAT20); its default path (2026-10-29; 13 code cells, exit 0, 0 errors) and its scripted DAT20 refusal (2026-10-29; `USE_BYOD=True;BYOD_PATH=/etc/hostname`: exactly one `Refused:` line at cell `pix2struct_ai2d-16`, no traceback, earlier cells clean, VM released) both passed on a hosted Colab Tesla T4 (Colab CLI `colab exec -f`, not a browser `Run all`), and the hosted runs of earlier blobs, including `bddb3724`, are history for it (REL14). Before that change: The notebook was regenerated at `39d8e03` (blob `bddb37243376`) and that exact blob passed the Colab CLI
 Tesla T4 run recorded above (2026-10-08 UTC, 13/13 code cells, 1029.1 s, one pass, no restart, 0 errors, default path
 only), reproducing every recorded measurement; promotion to Release-grade is a review decision for the exact release
 revision. The earlier Release-grade record identifies commit `75255e0` / blob `02cd3fb8fda4` only and remains history:
